@@ -16,7 +16,11 @@ let private doesCapture (board : Board) (move : Move) =
 
 (* Determines whether or not a move will stay within the bounds of the board *)
 let private doesStayInBounds (board : Board) (move : Move) =
-   false
+   let toMove = move.To
+   let maxFile = board.MaxFile
+   let maxRank = board.MaxRank
+
+   toMove.File >= 0 && toMove.Rank >= 0 && toMove.File <= maxFile && toMove.Rank <= maxRank
 
 (* Validates a piece type *)
 let private validatePiece (piece : (Piece * Position)) pieceType =
@@ -133,10 +137,18 @@ let private queenMoves (piece : (Piece * Position)) (maxFile : int) (maxRank : i
 (* Calculates the movements of a king *) 
 let private kingMoves (piece : (Piece * Position)) =
    if validatePiece piece King then
+      let position = snd piece
+      let xPosition = position.File
+      let yPosition = position.Rank
       [
-         let tuples = [(1, 0); (0, 1); (1, 1)]
-         for t in tuples do
-            
+         { File = xPosition + 1; Rank = yPosition }
+         { File = xPosition; Rank = yPosition + 1 }
+         { File = xPosition + 1; Rank = yPosition + 1}
+         { File = xPosition - 1; Rank = yPosition }
+         { File = xPosition - 1; Rank = yPosition + 1 }
+         { File = xPosition - 1; Rank = yPosition - 1 }
+         { File = xPosition; Rank = yPosition - 1 }
+         { File = xPosition + 1; Rank = yPosition - 1 }
       ]
    else
       failwith <| "Piece is not a king"
@@ -153,7 +165,11 @@ let private findAllPossibleMoves (board : Board) (piece : (Piece * Position)) =
 
 (* Find all available NEXT moves for just one piece *)
 let private findPieceAvailableMoves (board : Board) (piece : (Piece * Position)) =
-   0
+   let originalPosition = snd piece
+   findAllPossibleMoves board piece
+   |> List.map (fun position -> { From = originalPosition; To = position })
+   |> List.filter (doesStayInBounds board)
+   |> List.filter (doesCapture board)
 
 (* Find all available NEXT moves for every single piece *)
 let private findAvailableNextMoves (board : Board) =
