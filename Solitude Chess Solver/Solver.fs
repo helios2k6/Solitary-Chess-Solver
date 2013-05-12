@@ -176,18 +176,26 @@ let private findAvailableNextMoves (board : Board) =
    board.PieceState //Go through all pieces
    |> List.map (findPieceAvailableMoves board) //Send board and selected piece to the calculator function
 
+
+(* Selects the pieces of a board that don't have any part in the execution of a move *) 
+let private nonParticipatingPiecePartitioner (move : Move) (pieceTuple : (Piece * Position)) =
+   let position = snd pieceTuple
+   not(position = move.To || position = move.From)
+
 (* Performs a move and returns a new board to represent the new state *)
 let private executeMove (board : Board) (move : Move) =
+   let piecesNotParticipating, piecesParticipating = List.partition (nonParticipatingPiecePartitioner move) board.PieceState
    let movingPiece = 
       query {
-         for piece in board.PieceState do
+         for piece in piecesParticipating do
          where ((snd piece) = move.From)
          select (fst piece)
          exactlyOne
       }
 
+   let newPieceState = (movingPiece, move.To)::piecesNotParticipating
 
-   0
+   { board with PieceState = newPieceState }
 
 (* Solve the Solitary Chess puzzle *)
 let solve (board : Board) =
