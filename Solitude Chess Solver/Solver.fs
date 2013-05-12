@@ -37,7 +37,7 @@ let private pawnMoves (piece : (Piece * Position)) =
 
          [leftForward; rightForward]
    else
-      failwith <| "Piece is not a pawn"
+      failwith "Piece is not a pawn"
 
 (* Calculates the movements of a knight *)
 let private knightMoves (piece : (Piece * Position)) = 
@@ -57,7 +57,7 @@ let private knightMoves (piece : (Piece * Position)) =
       tupleComprehension
       |> List.map (fun t -> { File = (fst t); Rank = (snd t) })
    else
-      failwith <| "Piece is not a knight"
+      failwith "Piece is not a knight"
 
 (* Generates a linear function with the given slope, x and y *)
 let private generateLinearFunction slope xCoord yCoord =
@@ -110,7 +110,7 @@ let private bishopMoves (piece : (Piece * Position)) (maxFile : int) (maxRank : 
 
       generateAllDiagonalPositions xPosition yPosition maxFile maxRank
    else
-      failwith <| "Piece is not a bishop"
+      failwith "Piece is not a bishop"
 
 (* Calculates the movements of a rook *) 
 let private rookMoves (piece : (Piece * Position)) (maxFile : int) (maxRank : int) =
@@ -120,7 +120,7 @@ let private rookMoves (piece : (Piece * Position)) (maxFile : int) (maxRank : in
 
       generateAllHorizontalVerticalPositions xPosition yPosition maxFile maxRank
    else
-      failwith <| "Piece is not a rook"
+      failwith "Piece is not a rook"
 
 (* Calculates the movements of a queen *) 
 let private queenMoves (piece : (Piece * Position)) (maxFile : int) (maxRank : int) =
@@ -132,7 +132,7 @@ let private queenMoves (piece : (Piece * Position)) (maxFile : int) (maxRank : i
 
       List.append diagPositions horizVertPositions
    else
-      failwith <| "Piece is not a queen"
+      failwith "Piece is not a queen"
 
 (* Calculates the movements of a king *) 
 let private kingMoves (piece : (Piece * Position)) =
@@ -151,7 +151,7 @@ let private kingMoves (piece : (Piece * Position)) =
          { File = xPosition + 1; Rank = yPosition - 1 }
       ]
    else
-      failwith <| "Piece is not a king"
+      failwith "Piece is not a king"
 
 (* Finds all possible NEXT moves for just one piece, regardless of whether or not we capture another piece *)
 let private findAllPossibleMoves (board : Board) (piece : (Piece * Position)) =
@@ -175,6 +175,19 @@ let private findPieceAvailableMoves (board : Board) (piece : (Piece * Position))
 let private findAvailableNextMoves (board : Board) =
    board.PieceState //Go through all pieces
    |> List.map (findPieceAvailableMoves board) //Send board and selected piece to the calculator function
+
+(* Performs a move and returns a new board to represent the new state *)
+let private executeMove (board : Board) (move : Move) =
+   let movingPiece = 
+      query {
+         for piece in board.PieceState do
+         where ((snd piece) = move.From)
+         select (fst piece)
+         exactlyOne
+      }
+
+
+   0
 
 (* Solve the Solitary Chess puzzle *)
 let solve (board : Board) =
