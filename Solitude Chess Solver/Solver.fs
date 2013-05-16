@@ -171,11 +171,14 @@ let private findPieceAvailableMoves (board : Board) (piece : (Piece * Position))
    |> List.filter (doesStayInBounds board)
    |> List.filter (doesCapture board)
 
+(* Fold accumulator function to help findAvailableNextMoves *)
+let private availableMoveAccumFunc board accumulator pieceState =
+   List.append accumulator (findPieceAvailableMoves board pieceState) 
+
 (* Find all available NEXT moves for every single piece *)
 let private findAvailableNextMoves (board : Board) =
    board.PieceState //Go through all pieces
-   |> List.map (findPieceAvailableMoves board) //Send board and selected piece to the calculator function
-
+   |> List.fold (availableMoveAccumFunc board) [] //Send board and selected piece to the calculator function
 
 (* Selects the pieces of a board that don't have any part in the execution of a move *) 
 let private nonParticipatingPiecePartitioner (move : Move) (pieceTuple : (Piece * Position)) =
@@ -196,6 +199,14 @@ let private executeMove (board : Board) (move : Move) =
    let newPieceState = (movingPiece, move.To)::piecesNotParticipating
 
    { board with PieceState = newPieceState }
+
+(* Detects whether or not the board has been solved *)
+let private isSolved (board : Board) =
+   board.PieceState.Length = 1
+
+(* Helper function for solve *)
+let rec private solveHelper (board : Board) (previousMoves : Move list) =
+   0   
 
 (* Solve the Solitary Chess puzzle *)
 let solve (board : Board) =
