@@ -1,6 +1,7 @@
 ﻿module Solver
 
 open Components
+open ContinuationMonad
 
 (* Query to determine whether or not a position has a piece *)
 let private doesPositionHavePiece (board : Board) (position : Position) =
@@ -168,8 +169,7 @@ let private findPieceAvailableMoves (board : Board) (piece : (Piece * Position))
    let originalPosition = snd piece
    findAllPossibleMoves board piece
    |> List.map (fun position -> { From = originalPosition; To = position })
-   |> List.filter (doesStayInBounds board)
-   |> List.filter (doesCapture board)
+   |> List.filter (fun entry -> (doesStayInBounds board entry) && (doesCapture board entry))
 
 (* Fold accumulator function to help findAvailableNextMoves *)
 let private availableMoveAccumFunc board accumulator pieceState =
@@ -201,13 +201,36 @@ let private executeMove (board : Board) (move : Move) =
    { board with PieceState = newPieceState }
 
 (* Detects whether or not the board has been solved *)
-let private isSolved (board : Board) =
-   board.PieceState.Length = 1
+let private isSolved (board : Board) = board.PieceState.Length = 1
 
-(* Helper function for solve *)
-let rec private solveHelper (board : Board) (previousMoves : Move list) =
-   0   
+(* Solve helper *)
+let rec solveHelper (board : Board) (nextMove : Move) (previousMoves : Move list) =
+   let newBoardState = executeMove board nextMove
+   if isSolved board then
+      (true, nextMove::previousMoves)
+   else
+      let nextMoves = findAvailableNextMoves newBoardState
+      match nextMoves with
+      | l when List.isEmpty l -> (false, previousMoves)
+      | _ -> 
+               let mappingOfSolutions = List.map (fun moveInList -> solveHelper newBoardState moveInList previousMoves) nextMoves
+               let anySolvedSolutions = query {
+                                          for item in mappingOfSolutions do
+                                          where ((true, previousMoves) = item)
+                                          select item
+                                        }
+               if Seq.isEmpty anySolvedSolutions then (false, previousMoves)
+               else Seq.head anySolvedSolutions
 
 (* Solve the Solitary Chess puzzle *)
 let solve (board : Board) =
-   0
+   let initialSolutions = findAvailableNextMoves board
+                          |> List.map (fun move -> solveHelper board move)
+                          |> List.map (fun cont -> cont [])
+   let solution = query {
+                     for possibleSolution in initialSolutions do
+                     where (fst possibleSolution)
+                     select possibleSolution
+                  }
+   if Seq.isEmpty solution then None
+   else Some(snd (Seq.head solution))

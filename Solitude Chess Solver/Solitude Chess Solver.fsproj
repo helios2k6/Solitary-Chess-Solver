@@ -41,6 +41,8 @@
     <Reference Include="System.Numerics" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="MaybeMonad.fs" />
+    <Compile Include="ContinuationMonad.fs" />
     <Compile Include="Components.fs" />
     <Compile Include="Solver.fs" />
   </ItemGroup>
