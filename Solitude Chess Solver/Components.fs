@@ -1,25 +1,37 @@
-﻿module Components
+﻿namespace SolitudeChessSolver
 
-(* Piece types *) 
-type Piece = 
-   Pawn
-   | Knight
-   | Bishop
-   | Rook
-   | Queen 
-   | King
+module Components = 
+   open System
+   open System.Runtime.Serialization
+   open System.Reflection
+   open Microsoft.FSharp.Reflection
 
-(*
- * Represents position on the board. NOTE, the origin (0, 0) is always in the
- * BOTTOM-LEFT CORNER! This is different than the usual TOP-LEFT corner
- * 
- * File = The X position
- * Rank = The Y position
- *)
-type Position = { File : int; Rank : int }
+   (* Piece types *)
+   [<KnownType("KnownTypes")>]
+   type Piece = 
+      Pawn
+      | Knight
+      | Bishop
+      | Rook
+      | Queen 
+      | King
+      static member KnownTypes() = 
+         typeof<Piece>.GetNestedTypes(BindingFlags.Public ||| BindingFlags.NonPublic) |> Array.filter FSharpType.IsUnion
 
-(* Represents one move *)
-type Move = { From : Position; To : Position } 
+   (*
+    * Represents position on the board. NOTE, the origin (0, 0) is always in the
+    * BOTTOM-LEFT CORNER! This is different than the usual TOP-LEFT corner
+    * 
+    * File = The X position
+    * Rank = The Y position
+    *)
+    [<Serializable>]
+   type Position = { File : int; Rank : int }
 
-(* Represents a game board *)
-type Board = { MaxFile : int; MaxRank : int; PieceState : (Piece * Position) list }
+   (* Represents one move *)
+   [<Serializable>]
+   type Move = { From : Position; To : Position } 
+
+   (* Represents a game board *)
+   [<Serializable>]
+   type Board = { MaxFile : int; MaxRank : int; PieceState : (Piece * Position) list }
