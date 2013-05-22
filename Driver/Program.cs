@@ -28,6 +28,12 @@ namespace Driver
 			CreatePieceState(ChessComponent.Piece.Rook, new ChessComponent.Position(3, 3))
 		};
 
+		private static List<Tuple<ChessComponent.Piece, ChessComponent.Position>> SmallChessBoard = new List<Tuple<ChessComponent.Piece, ChessComponent.Position>>
+		{
+			CreatePieceState(ChessComponent.Piece.Pawn, new ChessComponent.Position(0, 0)),
+			CreatePieceState(ChessComponent.Piece.Pawn, new ChessComponent.Position(1, 1)),
+		};
+
 		public static void CheckSerialization()
 		{
 			var expectedBoard = SolitudeChessSolver.ExternalHelpers.CreateBoard(3, 3, StandardChessBoard);

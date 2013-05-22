@@ -53,7 +53,7 @@ let internal executeMove (board : Board) (move : Move) =
 (* Solve helper *)
 let rec internal solveHelper (board : Board) (nextMove : Move) (previousMoves : Move list) =
    let newBoardState = executeMove board nextMove
-   if isSolved board then
+   if isSolved newBoardState then
       (true, nextMove::previousMoves)
    else
       let nextMoves = findAvailableNextMoves newBoardState
