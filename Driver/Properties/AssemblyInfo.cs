@@ -5,11 +5,11 @@ using System.Runtime.InteropServices;
 // General Information about an assembly is controlled through the following 
 // set of attributes. Change these attribute values to modify the information
 // associated with an assembly.
-[assembly: AssemblyTitle("ExternalUsageTests")]
+[assembly: AssemblyTitle("Driver")]
 [assembly: AssemblyDescription("")]
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("")]
-[assembly: AssemblyProduct("ExternalUsageTests")]
+[assembly: AssemblyProduct("Driver")]
 [assembly: AssemblyCopyright("Copyright ©  2013")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
@@ -20,7 +20,7 @@ using System.Runtime.InteropServices;
 [assembly: ComVisible(false)]
 
 // The following GUID is for the ID of the typelib if this project is exposed to COM
-[assembly: Guid("eb045548-d67b-4d4a-be3e-109bd797bf90")]
+[assembly: Guid("c27da9f6-34da-478b-9b26-fab02eea3c9d")]
 
 // Version information for an assembly consists of the following four values:
 //

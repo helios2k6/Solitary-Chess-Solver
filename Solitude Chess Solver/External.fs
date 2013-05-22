@@ -3,6 +3,7 @@
 open System
 open System.Collections.Generic
 open SolitudeChessSolver.Components
+open Engine
 
 type ExternalHelpers() =
    //C# translation layer
@@ -12,3 +13,9 @@ type ExternalHelpers() =
                         select (tupleItem.Item1, tupleItem.Item2)
                      }
       { MaxFile = maxFile; MaxRank = maxRank; PieceState = Seq.toList(seqTrans) }
+
+   static member Solve((board : Board)) =
+      let result = solve board
+      match result with
+      | Some(r) -> r
+      | None -> []
