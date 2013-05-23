@@ -44,6 +44,11 @@ namespace Driver
 			memoryStream.Position = 0;
 
 			var deserializedBoard = serializer.ReadObject(memoryStream) as ChessComponent.Board;
+
+			if (!object.Equals(expectedBoard, deserializedBoard))
+			{
+				throw new Exception("Expected board and actual board not the same");
+			}
 		}
 
 		public static void Main(string[] args)

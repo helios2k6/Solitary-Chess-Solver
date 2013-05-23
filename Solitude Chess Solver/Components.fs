@@ -35,3 +35,8 @@ module Components =
    (* Represents a game board *)
    [<Serializable>]
    type Board = { MaxFile : int; MaxRank : int; PieceState : (Piece * Position) list }
+
+module internal InternalComponents =
+   type ContinuationStep<'a> =
+      | Finished
+      | Step of 'a * (unit -> ContinuationStep<'a>)
