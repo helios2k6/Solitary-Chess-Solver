@@ -3,7 +3,7 @@
 open SolitudeChessSolver.Components
 open Predicates
 open Moves
-open SolitudeChessSolver.InternalComponents
+open InternalHelpers
 
 (* Finds all possible NEXT moves for just one piece, regardless of whether or not we capture another piece *)
 let internal findAllPossibleMoves (board : Board) (piece : (Piece * Position)) =

@@ -37,6 +37,7 @@
   </PropertyGroup>
   <Import Project="$(MSBuildExtensionsPath32)\..\Microsoft SDKs\F#\3.0\Framework\v4.0\Microsoft.FSharp.Targets" Condition=" Exists('$(MSBuildExtensionsPath32)\..\Microsoft SDKs\F#\3.0\Framework\v4.0\Microsoft.FSharp.Targets')" />
   <ItemGroup>
+    <Compile Include="InternalHelpers.fs" />
     <Compile Include="Components.fs" />
     <Compile Include="Predicates.fs" />
     <Compile Include="Moves.fs" />
