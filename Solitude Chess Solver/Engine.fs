@@ -1,12 +1,13 @@
 ﻿module Engine
 
 open SolitudeChessSolver.Components
+open SolitudeChessSolver.InternalComponents
+open InternalHelpers
 open Predicates
 open Moves
-open InternalHelpers
 
 (* Finds all possible NEXT moves for just one piece, regardless of whether or not we capture another piece *)
-let internal findAllPossibleMoves (board : Board) (piece : (Piece * Position)) =
+let private findAllPossibleMoves (board : Board) (piece : (Piece * Position)) =
    match (fst piece) with
    | Pawn -> pawnMoves piece
    | Knight -> knightMoves piece
@@ -16,28 +17,28 @@ let internal findAllPossibleMoves (board : Board) (piece : (Piece * Position)) =
    | King -> kingMoves piece
 
 (* Find all available NEXT moves for just one piece *)
-let internal findPieceAvailableMoves (board : Board) (piece : (Piece * Position)) =
+let private findPieceAvailableMoves (board : Board) (piece : (Piece * Position)) =
    let originalPosition = snd piece
    findAllPossibleMoves board piece
    |> List.map (fun position -> { From = originalPosition; To = position })
    |> List.filter (fun entry -> (doesStayInBounds board entry) && (doesCapture board entry))
 
 (* Fold accumulator function to help findAvailableNextMoves *)
-let internal availableMoveAccumFunc board accumulator pieceState =
+let private availableMoveAccumFunc board accumulator pieceState =
    List.append accumulator (findPieceAvailableMoves board pieceState) 
 
 (* Find all available NEXT moves for every single piece *)
-let internal findAvailableNextMoves (board : Board) =
+let private findAvailableNextMoves (board : Board) =
    board.PieceState //Go through all pieces
    |> List.fold (availableMoveAccumFunc board) [] //Send board and selected piece to the calculator function
 
 (* Selects the pieces of a board that don't have any part in the execution of a move *) 
-let internal nonParticipatingPiecePartitioner (move : Move) (pieceTuple : (Piece * Position)) =
+let private nonParticipatingPiecePartitioner (move : Move) (pieceTuple : (Piece * Position)) =
    let position = snd pieceTuple
    not(position = move.To || position = move.From)
 
 (* Performs a move and returns a new board to represent the new state *)
-let internal executeMove (board : Board) (move : Move) =
+let private executeMove (board : Board) (move : Move) =
    let piecesNotParticipating, piecesParticipating = List.partition (nonParticipatingPiecePartitioner move) board.PieceState
    let movingPiece = 
       query {
@@ -51,8 +52,38 @@ let internal executeMove (board : Board) (move : Move) =
 
    { board with PieceState = newPieceState }
 
+(* Process one step *)
+let private processSingleMove board move =
+   let newBoardState = executeMove board move
+
+   if isSolved newBoardState then
+      Solved
+   else
+      let availableMoves = findAvailableNextMoves newBoardState
+      match availableMoves with
+      | [] -> NoSolutionPossible
+      | moves -> Unsolved(moves)
+
+(* Process a list of moves, represented by a continuation *)
+let rec private processListOfMoves board (nextMoves : ContinuationStep<Move>) (accum : Move list) =
+   //Process all continuations
+   let resultList = mapCont (fun a -> processSingleMove board a) nextMoves
+   //Segregate the results
+   let rec seg resultList (accum : (ProcessStatus list) * (ProcessStatus list) * (ProcessStatus list)) =
+      match resultList with
+      | [] -> accum
+      | h::t -> match accum with
+                | (unsolvedList, noSolutionList, solvedList) ->
+                     match h with
+                     | Unsolved(_) -> seg t (h::unsolvedList, noSolutionList, solvedList)
+                     | NoSolutionPossible -> seg t (unsolvedList, h::noSolutionList, solvedList)
+                     | Solved -> seg t (unsolvedList, noSolutionList, h::solvedList)
+
+   let segregatedItems = seg resultList ([], [], [])
+   0
+
 (* Solve helper *)
-let rec internal solveHelper (board : Board) (nextMove : Move) (previousMoves : Move list) =
+let rec private solveHelper (board : Board) (nextMove : Move) (previousMoves : Move list) =
    let newBoardState = executeMove board nextMove
    if isSolved newBoardState then
       (true, nextMove::previousMoves)

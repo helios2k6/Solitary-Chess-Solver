@@ -9,12 +9,13 @@ module Components =
    (* Piece types *)
    [<KnownType("KnownTypes")>]
    type Piece = 
-      Pawn
+      | Pawn
       | Knight
       | Bishop
       | Rook
       | Queen 
       | King
+
       static member KnownTypes() = 
          typeof<Piece>.GetNestedTypes(BindingFlags.Public ||| BindingFlags.NonPublic) |> Array.filter FSharpType.IsUnion
 
@@ -35,3 +36,14 @@ module Components =
    (* Represents a game board *)
    [<Serializable>]
    type Board = { MaxFile : int; MaxRank : int; PieceState : (Piece * Position) list }
+
+module InternalComponents =
+   open Components
+   open InternalHelpers
+
+   type internal ProcessStatus =
+      | Unsolved of Move list
+      | NoSolutionPossible
+      | Solved
+
+   type internal SolutionState = { Status : ProcessStatus; Accumulator : Move list }
