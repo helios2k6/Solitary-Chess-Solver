@@ -26,12 +26,16 @@ module Components =
     * File = The X position
     * Rank = The Y position
     *)
-    [<Serializable>]
-   type Position = { File : int; Rank : int }
+   [<Serializable>]
+   type Position = 
+      { File : int; Rank : int }
+      member this.ToString() = sprintf "(%A, %A)" this.File this.Rank
 
    (* Represents one move *)
    [<Serializable>]
-   type Move = { From : Position; To : Position } 
+   type Move = 
+      { From : Position; To : Position } 
+      member this.ToString() = sprintf "%A -> %A" (this.From.ToString()) (this.To.ToString())
 
    (* Represents a game board *)
    [<Serializable>]
@@ -41,9 +45,11 @@ module InternalComponents =
    open Components
    open InternalHelpers
 
+   (* Represents the state of a single round of processing *)
    type internal ProcessStatus =
-      | Unsolved of Move list
+      | Unsolved of ContinuationStep<Move>
       | NoSolutionPossible
       | Solved
 
-   type internal SolutionState = { Status : ProcessStatus; Accumulator : Move list }
+   (* Represents the current state of processing a board *)
+   type internal SolutionState = { Board : Board; Status : ProcessStatus; Accumulator : Move list }

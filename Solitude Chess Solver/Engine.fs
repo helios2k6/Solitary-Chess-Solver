@@ -52,64 +52,62 @@ let private executeMove (board : Board) (move : Move) =
 
    { board with PieceState = newPieceState }
 
-(* Process one step *)
-let private processSingleMove board move =
-   let newBoardState = executeMove board move
-
-   if isSolved newBoardState then
-      Solved
+(* The actual work to process a solution state *)
+let private processStateHelper board move (accum : Move list) =
+   if accum.Length > ((board.MaxRank + 1) * (board.MaxFile + 1)) then
+      { Board = board; Status = NoSolutionPossible; Accumulator = [] }
    else
-      let availableMoves = findAvailableNextMoves newBoardState
-      match availableMoves with
-      | [] -> NoSolutionPossible
-      | moves -> Unsolved(moves)
+      let newBoardState = executeMove board move
 
-(* Process a list of moves, represented by a continuation *)
-let rec private processListOfMoves board (nextMoves : ContinuationStep<Move>) (accum : Move list) =
-   //Process all continuations
-   let resultList = mapCont (fun a -> processSingleMove board a) nextMoves
-   //Segregate the results
-   let rec seg resultList (accum : (ProcessStatus list) * (ProcessStatus list) * (ProcessStatus list)) =
-      match resultList with
-      | [] -> accum
-      | h::t -> match accum with
-                | (unsolvedList, noSolutionList, solvedList) ->
-                     match h with
-                     | Unsolved(_) -> seg t (h::unsolvedList, noSolutionList, solvedList)
-                     | NoSolutionPossible -> seg t (unsolvedList, h::noSolutionList, solvedList)
-                     | Solved -> seg t (unsolvedList, noSolutionList, h::solvedList)
+      if isSolved newBoardState then
+         { Board = newBoardState; Status = Solved; Accumulator = move::accum }
+      else
+         let availableMoves = findAvailableNextMoves newBoardState
+         match availableMoves with
+         | [] -> { Board = newBoardState; Status = NoSolutionPossible; Accumulator = [] }
+         | moves -> { Board = newBoardState; Status = Unsolved(createContForList moves); Accumulator = move::accum }
 
-   let segregatedItems = seg resultList ([], [], [])
-   0
+(* Process a single solution state *)
+let private processState (solutionState : SolutionState) =
+   match solutionState.Status with
+   | NoSolutionPossible | Solved -> failwith "No solution possible or solved"
+   | Unsolved(nextMoves) -> mapCont (fun a -> processStateHelper solutionState.Board a solutionState.Accumulator) nextMoves
 
-(* Solve helper *)
-let rec private solveHelper (board : Board) (nextMove : Move) (previousMoves : Move list) =
-   let newBoardState = executeMove board nextMove
-   if isSolved newBoardState then
-      (true, nextMove::previousMoves)
-   else
-      let nextMoves = findAvailableNextMoves newBoardState
-      match nextMoves with
-      | l when List.isEmpty l -> (false, previousMoves)
-      | _ -> 
-               let mappingOfSolutions = List.map (fun moveInList -> solveHelper newBoardState moveInList previousMoves) nextMoves
-               let anySolvedSolutions = query {
-                                          for item in mappingOfSolutions do
-                                          where ((true, previousMoves) = item)
-                                          select item
-                                        }
-               if Seq.isEmpty anySolvedSolutions then (false, previousMoves)
-               else Seq.head anySolvedSolutions
+(* Process the list of solution states *)
+let private processStates (solutionStates : SolutionState list) =
+   List.collect processState solutionStates
 
-(* Solve the Solitary Chess puzzle *)
+(* Partitioner for solution states *)
+let private solutionStateMapper (accum : (SolutionState list * SolutionState list)) item =
+   match accum with
+   | (unsolvedList, solvedList) -> 
+      match item.Status with
+      | Unsolved(_) -> (item::unsolvedList, solvedList)
+      | NoSolutionPossible -> (unsolvedList, solvedList)
+      | Solved -> (unsolvedList, item::solvedList)
+
+(* Solves the puzzle given a list of solution states *)
+let rec private solveStates (solutionStates : SolutionState list) =
+   let processResults = processStates solutionStates 
+                        |> List.fold solutionStateMapper ([], [])
+   
+   match processResults with
+   | (unsolvedList, solvedList) ->
+      (* Did we find a solution? *)
+      if not(solvedList.IsEmpty) then
+         solvedList
+      (* Can we still keep looking? *)
+      elif not(unsolvedList.IsEmpty) then
+         solveStates unsolvedList
+      (* There isn't a solution *)
+      else
+         []
+
+(* Solver with CPS instead *)
 let internal solve (board : Board) =
-   let initialSolutions = findAvailableNextMoves board
-                          |> List.map (fun move -> solveHelper board move)
-                          |> List.map (fun cont -> cont [])
-   let solution = query {
-                     for possibleSolution in initialSolutions do
-                     where (fst possibleSolution)
-                     select possibleSolution
-                  }
-   if Seq.isEmpty solution then None
-   else Some(snd (Seq.head solution))
+   (* Start with the first solution state *)
+   let firstContinuations = findAvailableNextMoves board |> createContForList
+   let firstSolutionState = { Board = board; Status = Unsolved(firstContinuations); Accumulator = [] }
+
+   solveStates [firstSolutionState]
+   |> List.map (fun state -> { Board = state.Board; Status = state.Status; Accumulator = List.rev state.Accumulator }) 

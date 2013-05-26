@@ -54,11 +54,18 @@ namespace Driver
 		public static void Main(string[] args)
 		{
 			var expectedBoard = SolitudeChessSolver.ExternalHelpers.CreateBoard(3, 3, StandardChessBoard);
-			var result = SolitudeChessSolver.ExternalHelpers.Solve(expectedBoard);
+			var resultCPS = SolitudeChessSolver.ExternalHelpers.Solve(expectedBoard);
 
-			foreach (var k in result)
+			int i = 0;
+			foreach (var k in resultCPS)
 			{
-				Console.WriteLine(k);
+				i++;
+				Console.WriteLine(string.Format("Solution {0}", i));
+				foreach (var l in k)
+				{
+					Console.WriteLine(l.ToString());
+				}
+				Console.WriteLine("=====");
 			}
 		}
 	}

@@ -14,8 +14,6 @@ type ExternalHelpers() =
                      }
       { MaxFile = maxFile; MaxRank = maxRank; PieceState = Seq.toList(seqTrans) }
 
-   static member Solve((board : Board)) =
-      let result = solve board
-      match result with
-      | Some(r) -> r
-      | None -> []
+   static member Solve(board : Board) =
+      solve board
+      |> List.map (fun item -> item.Accumulator)
