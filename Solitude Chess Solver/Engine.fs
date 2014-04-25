@@ -52,6 +52,31 @@ let private executeMove (board : Board) (move : Move) =
 
    { board with PieceState = newPieceState }
 
+(* Simple piece partitioner based  *)
+let private singlePointParticipatingPiecePartitioner (move : Move) (pieceTuple : (Piece * Position)) =
+   let position = snd pieceTuple
+   position = move.From || position = move.To
+
+(* Finds all the pieces that are participating and not participating in the move *)
+let private partitionParticipatingPieces (board : Board) (move : Move) =
+   let movingPiece = query {
+                        for piece in board.PieceState do 
+                        where ((snd piece) = move.From)
+                        select piece
+                        exactlyOne
+                     }
+   match (fst movingPiece) with
+   | Knight ->
+      let result = List.partition (singlePointParticipatingPiecePartitioner move) board.PieceState
+      match result with
+      | (participating, nonParticipating) -> (participating, nonParticipating, movingPiece)
+   | _ -> failwith "Not implemented"
+      
+
+let private executeMoveA (board : Board) (move : Move) = 
+   failwith "Not implemented"
+      
+
 (* The actual work to process a solution state *)
 let private processStateHelper board move (accum : Move list) =
    if accum.Length > ((board.MaxRank + 1) * (board.MaxFile + 1)) then

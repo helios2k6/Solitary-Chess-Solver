@@ -7,6 +7,7 @@ module Components =
    open Microsoft.FSharp.Reflection
 
    (* Piece types *)
+   [<Serializable>]
    [<KnownType("KnownTypes")>]
    type Piece = 
       | Pawn

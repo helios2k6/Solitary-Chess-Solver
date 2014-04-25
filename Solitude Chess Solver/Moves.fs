@@ -27,7 +27,7 @@ let internal knightMoves (piece : (Piece * Position)) =
          ]
       
    tupleComprehension
-   |> List.map (fun t -> { File = (fst t) + currentX; Rank = (snd t) + currentY})
+   |> List.map (fun t -> { File = (fst t) + currentX; Rank = (snd t) + currentY })
 
 (* Generates a linear function with the given slope, x and y *)
 let internal generateLinearFunction slope xCoord yCoord =
@@ -49,10 +49,7 @@ let internal generateAllDiagonalPositions file rank maxFile maxRank =
    let bothLines = List.append positiveSlopeLine negativeSlopeLine
 
    bothLines
-   |> List.filter (fun tuple -> 
-                     let x = fst tuple
-                     let y = snd tuple
-                     standardBoundaryPredicate x y file rank maxFile maxRank)
+   |> List.filter (fun tuple -> standardBoundaryPredicate tuple (file, rank) maxFile maxRank)
    |> List.map    (fun tuple -> { File = (fst tuple); Rank = (snd tuple) } )
 
 (* Generates all horizontal and vertical positions *)
@@ -62,11 +59,7 @@ let internal generateAllHorizontalVerticalPositions file rank maxFile maxRank =
    let bothLines = List.append horizontalLine verticalLine
 
    bothLines
-   |> List.filter (fun tuple ->
-                     let x = fst tuple
-                     let y = snd tuple
-                     let result = standardBoundaryPredicate x y file rank maxFile maxRank
-                     result)
+   |> List.filter (fun tuple -> standardBoundaryPredicate tuple (file, rank) maxFile maxRank)
    |> List.map    (fun tuple -> { File = (fst tuple); Rank = (snd tuple) })
 
 (* Calculates the movements of a bishop *)
@@ -90,7 +83,7 @@ let internal queenMoves (piece : (Piece * Position)) (maxFile : int) (maxRank : 
    let diagPositions = generateAllDiagonalPositions xPosition yPosition maxFile maxRank
    let horizVertPositions = generateAllHorizontalVerticalPositions xPosition yPosition maxFile maxRank
 
-   List.append diagPositions horizVertPositions
+   diagPositions @ horizVertPositions
 
 (* Calculates the movements of a king *) 
 let internal kingMoves (piece : (Piece * Position)) =

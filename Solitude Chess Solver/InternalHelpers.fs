@@ -1,4 +1,6 @@
 ﻿module InternalHelpers
+open System.Collections.Generic
+
 
 type internal ContinuationStep<'a> =
    | Finished
@@ -19,3 +21,16 @@ let internal mapCont<'a, 'b> (f : 'a -> 'b) (root : ContinuationStep<'a>) =
       | Finished -> accum
 
    internalIterator f root []
+
+let internal memoize (f : 'a -> 'b) =
+   let dict = Dictionary<'a, 'b>()
+
+   let memoizeFunc(input : 'a) =
+      match dict.TryGetValue(input) with
+      | true, output -> output
+      | false, _ -> 
+         let answer = f input
+         dict.Add(input, answer)
+         answer
+
+   memoizeFunc

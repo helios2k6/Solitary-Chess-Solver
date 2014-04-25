@@ -21,8 +21,12 @@ let internal doesStayInBounds (board : Board) (move : Move) =
    toMove.File >= 0 && toMove.Rank >= 0 && toMove.File <= maxFile && toMove.Rank <= maxRank
 
 (* Standard predicate for board boundaries when generating moves from a polynomial *)
-let internal standardBoundaryPredicate x y file rank maxFile maxRank =
-   x >= 0 && x <= maxFile && y >= 0 && y <= maxRank && not(x = file && y = rank)
+let internal standardBoundaryPredicate newPosition oldPosition maxFile maxRank =
+   let x = fst newPosition
+   let y = snd newPosition
+   let oldX = fst oldPosition
+   let oldY = snd oldPosition
+   x >= 0 && x <= maxFile && y >= 0 && y <= maxRank && not(x = oldX && y = oldY)
 
 (* Detects whether or not the board has been solved *)
 let internal isSolved (board : Board) = board.PieceState.Length = 1
